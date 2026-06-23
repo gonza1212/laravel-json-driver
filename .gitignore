@@ -1,0 +1,13 @@
+/vendor/
+/.phpunit.cache/
+/.phpstan-cache/
+/storage/
+/.idea/
+/.vscode/
+*.cache
+/composer.lock
+
+# agent/metodologia — nunca a GitHub
+ARCHITECTURE.md
+CONTEXT.md
+tasks/

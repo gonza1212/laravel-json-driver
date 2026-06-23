@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-version: ['8.3', '8.4', '8.5']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, xml, ctype, json
+          coverage: none
+
+      - name: Validar composer.json
+        run: composer validate --strict
+
+      - name: Cache dependencias de Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ matrix.php-version }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ matrix.php-version }}-
+
+      - name: Instalar dependencias
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Correr tests
+        run: composer test
+
+      - name: Análisis estático
+        run: composer analyse
