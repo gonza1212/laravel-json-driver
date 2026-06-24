@@ -1,197 +1,197 @@
 # CONTRIBUTING.md
 
-## Filosofía
+## Philosophy
 
-Este archivo describe el workflow con el repositorio remoto y las convenciones de trabajo entre el desarrollador, Claude como co-arquitecto y el agente de codeo. El objetivo es que en cualquier momento el estado del repositorio refleje exactamente qué está hecho, qué está en curso y qué sigue.
+This file describes the remote repository workflow and the conventions between the developer, Claude as co-architect, and the coding agent. The objective is that at any moment the repository state reflects exactly what is done, what is in progress, and what comes next.
 
-El agente de codeo nunca hace commit ni push sin confirmación explícita del desarrollador. Ningún paso de git se ejecuta de forma anticipada ni automática.
-
----
-
-## Estructura de ramas
-
-```
-main          — solo código que pasó el quality gate completo
-dev           — integración continua, rama de trabajo habitual
-feature/xxx   — una rama por unidad de trabajo, sale de dev
-spike/xxx     — una rama por spike de infraestructura, sale de dev
-fix/xxx       — una rama por fix, sale de dev
-```
-
-Nunca se commitea directo a `main`. Los merges a `main` son siempre desde `dev` y solo cuando el quality gate pasó completo.
+The coding agent never commits or pushes without explicit developer confirmation. No git step is executed preemptively or automatically.
 
 ---
 
-## Workflow para feature branch y spike branch
+## Branch structure
 
-### Fase 1 — Implementación
+```
+main          — only code that passed the full quality gate
+dev           — continuous integration, usual working branch
+feature/xxx   — one branch per work unit, branches off dev
+spike/xxx     — one branch per infrastructure spike, branches off dev
+fix/xxx       — one branch per fix, branches off dev
+```
+
+Never commit directly to `main`. Merges to `main` are always from `dev` and only when the quality gate has fully passed.
+
+---
+
+## Workflow for feature branch and spike branch
+
+### Phase 1 — Implementation
 
 ```bash
-1. Crear rama desde dev
+1. Create branch from dev
    git checkout dev && git pull
-   git checkout -b feature/nombre-de-la-unidad
-   # o: git checkout -b spike/nombre-del-spike
+   git checkout -b feature/unit-name
+   # or: git checkout -b spike/spike-name
 ```
 
-El agente implementa la unidad en esa rama exclusivamente.
+The agent implements the unit on that branch exclusively.
 
-Al terminar la implementación, el agente:
-- Ejecuta el quality gate y reporta el resultado
-- Avisa al desarrollador que la implementación está lista
-- Espera confirmación del desarrollador antes de cualquier acción adicional
+Upon completing implementation, the agent:
+- Runs the quality gate and reports the result
+- Notifies the developer that implementation is ready
+- Waits for developer confirmation before any additional action
 
-El agente no hace commit en este momento. No hace push. No hace merge. Espera.
+The agent does not commit at this point. Does not push. Does not merge. Waits.
 
-### Fase 2 — Smoke tests y correcciones
+### Phase 2 — Smoke tests and fixes
 
-El desarrollador ejecuta los smoke tests manuales definidos en el task file de la unidad.
+The developer runs the manual smoke tests defined in the unit's task file.
 
-Si el desarrollador encuentra errores o comportamiento incorrecto:
-- El agente aplica las correcciones necesarias en la misma rama
-- Ejecuta el quality gate nuevamente y reporta resultados
-- Avisa al desarrollador que las correcciones están listas
-- Vuelve a esperar confirmación del desarrollador
+If the developer finds errors or incorrect behavior:
+- The agent applies the necessary fixes on the same branch
+- Runs the quality gate again and reports results
+- Notifies the developer that fixes are ready
+- Waits again for developer confirmation
 
-Este ciclo se repite todas las veces que sea necesario hasta que el desarrollador confirme que todo funciona correctamente. El agente no hace commit entre correcciones. Todos los cambios de la fase de correcciones se acumulan sin commitear hasta la confirmación final.
+This cycle repeats as many times as necessary until the developer confirms everything works correctly. The agent does not commit between fixes. All changes from the fix phase accumulate without committing until final confirmation.
 
-### Fase 3 — Commit y merge (solo tras confirmación del desarrollador)
+### Phase 3 — Commit and merge (only after developer confirmation)
 
-Cuando el desarrollador confirma que los smoke tests pasan y la unidad está completa:
+When the developer confirms that smoke tests pass and the unit is complete:
 
 ```bash
-2. Commit de la feature branch
+2. Commit the feature branch
    git add .
-   git commit -m "feat: descripción de la unidad"
-   # o: git commit -m "spike: descripción del spike"
+   git commit -m "feat: unit description"
+   # or: git commit -m "spike: spike description"
 
-3. Merge a dev
+3. Merge to dev
    git checkout dev
    git pull
 
-   # Si hubo commits intermedios sucios (WIP, pruebas, etc.):
-   git merge --squash feature/nombre-de-la-unidad
-   git commit -m "feat: descripción de la unidad"
+   # If there were dirty intermediate commits (WIP, tests, etc.):
+   git merge --squash feature/unit-name
+   git commit -m "feat: unit description"
 
-   # Si los commits intermedios son limpios y tienen historia útil:
-   git merge --no-ff feature/nombre-de-la-unidad
+   # If the intermediate commits are clean and have useful history:
+   git merge --no-ff feature/unit-name
 
-4. Eliminar la rama de feature
-   git branch -d feature/nombre-de-la-unidad
+4. Delete the feature branch
+   git branch -d feature/unit-name
 
-5. Push de dev
+5. Push dev
    git push origin dev
 ```
 
-### Fase 4 — Documentación
+### Phase 4 — Documentation
 
 ```bash
-6. Actualizar CONTEXT.md con lo implementado en esta unidad
-   — qué se hizo, qué decisiones se tomaron, qué no tocar
+6. Update CONTEXT.md with what was implemented in this unit
+   — what was done, what decisions were made, what not to touch
 
-7. Si hubo decisiones o cambios arquitectónicos durante la implementación,
-   actualizar ARCHITECTURE.md antes de commitear
+7. If there were architectural decisions or changes during implementation,
+   update ARCHITECTURE.md before committing
 
-8. Mover el task file a tasks/done/
+8. Move the task file to tasks/done/
 
-9. Commit de la documentación
+9. Commit the documentation
    git add CONTEXT.md ARCHITECTURE.md tasks/done/
    git commit -m "chore: update CONTEXT.md post feature-XX"
    git push origin dev
 ```
 
-### Fase 5 — Merge a main y sincronización
+### Phase 5 — Merge to main and sync
 
 ```bash
-10. Rebasar dev sobre main
+10. Rebase dev onto main
     git checkout dev
     git rebase main
 
-11. Avanzar main con fast-forward
+11. Advance main with fast-forward
     git checkout main
     git merge --ff-only dev
 
-12. Subir main
+12. Push main
     git push origin main
 
-13. Subir dev (el rebase reescribió commits, requiere push forzado)
+13. Push dev (the rebase rewrote commits, requires force push)
     git push origin dev --force-with-lease
 
-14. Verificar que local y remoto están alineados
+14. Verify local and remote are aligned
     git fetch --all
     git status
-    # ambas ramas deben reportar "up to date"
+    # both branches should report "up to date"
 ```
 
-Usar siempre `--force-with-lease` en lugar de `--force`. La diferencia: `--force-with-lease` falla si alguien subió cambios a la rama remota mientras tanto, evitando pisar trabajo ajeno.
+Always use `--force-with-lease` instead of `--force`. The difference: `--force-with-lease` fails if someone pushed changes to the remote branch in the meantime, preventing overwriting someone else's work.
 
 ---
 
-## Workflow para fix branch
+## Workflow for fix branch
 
-### Fase 1 — Implementación
+### Phase 1 — Implementation
 
 ```bash
-1. Crear rama desde dev
+1. Create branch from dev
    git checkout dev && git pull
-   git checkout -b fix/nombre-del-fix
+   git checkout -b fix/fix-name
 ```
 
-El agente implementa el fix en esa rama exclusivamente. Al terminar, ejecuta el quality gate, reporta resultados y espera confirmación del desarrollador. No hace commit. Espera.
+The agent implements the fix on that branch exclusively. Upon completion, runs the quality gate, reports results, and waits for developer confirmation. Does not commit. Waits.
 
-### Fase 2 — Smoke tests y correcciones
+### Phase 2 — Smoke tests and fixes
 
-El desarrollador verifica que el fix resuelve el problema reportado. Si el fix es incompleto o genera nuevos problemas, el agente aplica correcciones, reporta y vuelve a esperar. Este ciclo se repite hasta que el desarrollador confirme.
+The developer verifies that the fix resolves the reported issue. If the fix is incomplete or creates new problems, the agent applies fixes, reports, and waits again. This cycle repeats until the developer confirms.
 
-### Fase 3 — Commit y merge (solo tras confirmación del desarrollador)
+### Phase 3 — Commit and merge (only after developer confirmation)
 
 ```bash
-2. Commit de la fix branch
+2. Commit the fix branch
    git add .
-   git commit -m "fix: descripción del fix"
+   git commit -m "fix: fix description"
 
-3. Merge a dev
+3. Merge to dev
    git checkout dev
    git pull
-   git merge --no-ff fix/nombre-del-fix
+   git merge --no-ff fix/fix-name
 
-4. Eliminar la rama de fix
-   git branch -d fix/nombre-del-fix
+4. Delete the fix branch
+   git branch -d fix/fix-name
 
-5. Push de dev
+5. Push dev
    git push origin dev
 ```
 
-### Fase 4 — Documentación
+### Phase 4 — Documentation
 
 ```bash
-6. Actualizar CONTEXT.md si el fix implica algo que no debe repetirse
-   o una decisión técnica nueva
+6. Update CONTEXT.md if the fix implies something that should not repeat
+   or a new technical decision
 
-7. Mover el task file a tasks/done/
+7. Move the task file to tasks/done/
 
-8. Commit de la documentación
+8. Commit the documentation
    git add CONTEXT.md tasks/done/
    git commit -m "chore: update CONTEXT.md post fix-XX"
    git push origin dev
 ```
 
-### Fase 5 — Merge a main y sincronización
+### Phase 5 — Merge to main and sync
 
-Igual que en el workflow de feature branch, pasos 10–14.
+Same as the feature branch workflow, steps 10–14.
 
 ---
 
 ## Quality gate
 
-No hay excepciones. Una unidad no está cerrada hasta que el desarrollador confirma que pasa todo esto.
+No exceptions. A unit is not closed until the developer confirms everything below passes.
 
 ```bash
-composer test           → todos los tests de Pest en verde
-composer analyse        → Larastan nivel 5 sin errores
-smoke test              → comportamiento observable verificado manualmente por el desarrollador
+composer test           → all Pest tests green
+composer analyse        → Larastan level 5 without errors
+smoke test              → observable behavior manually verified by the developer
 ```
 
-Los scripts `test` y `analyse` se definen en `composer.json`:
+The `test` and `analyse` scripts are defined in `composer.json`:
 
 ```json
 "scripts": {
@@ -202,101 +202,104 @@ Los scripts `test` y `analyse` se definen en `composer.json`:
 
 ### Smoke tests
 
-Cada task file define sus propios smoke tests manuales en la sección "Criterio de done". Los smoke tests son la única forma de contrastar lo que el agente dice que funciona con lo que realmente funciona. No se omiten bajo ninguna circunstancia. En unidades de solo lógica sin UI, el task file documenta explícitamente que los smoke tests de esa unidad son verificables desde tinker o desde un comando artisan simple.
+Each task file defines its own manual smoke tests in the "Done criteria" section. Smoke tests are the only way to contrast what the agent says works with what actually works. They are never skipped under any circumstances. In logic-only units without UI, the task file explicitly documents that those unit's smoke tests are verifiable from tinker or from a simple artisan command.
 
 ---
 
-## Versionado
+## Versioning
 
-### Formato
+### Format
 
-`major.minor.fix` — tres números separados por punto. Ejemplo: `0.1.0`
+`major.minor.fix` — three dot-separated numbers. Example: `0.1.0`
 
-- **major**: solo cambia cuando el desarrollador decide que el package alcanzó un estado estable para release público
-- **minor**: se incrementa en 1 por cada task file de feature o spike completado y mergeado a `dev`
-- **fix**: se incrementa en 1 por cada task file de fix o refactor completado y mergeado a `dev`
+- **major**: only changes when the developer decides the package has reached a stable state for public release
+- **minor**: increments by 1 for each feature or spike task file completed and merged to `dev`
+- **fix**: increments by 1 for each fix or refactor task file completed and merged to `dev`
 
-### Dónde vive
+### Where it lives
 
-La versión vive exclusivamente en git tags. El campo `version` fue eliminado de `composer.json` porque `composer validate --strict` lo rechaza para paquetes distribuidos via Packagist. El agente crea el tag al cerrar la unidad (Fase 5), después del merge a `main`. El tag sigue el formato `v{major}.{minor}.{fix}`, ejemplo: `v0.4.0`.
+The version lives exclusively in git tags. The `version` field was removed from `composer.json` because `composer validate --strict` rejects it for packages distributed via Packagist. The agent creates the tag on unit close (Phase 5), after merge to `main`. The tag follows the format `v{major}.{minor}.{fix}`, example: `v0.4.0`.
 
-### Regla de decisión del agente
+### Agent decision rule
 
-El agente siempre pregunta antes de incrementar la versión:
+The agent always asks before incrementing the version:
 
-> ¿Incremento el minor a `0.X+1.0` o esta feature representa un milestone que merece bump de major?
+> Should I bump the minor to `0.X+1.0` or does this feature represent a milestone that deserves a major bump?
 
-Solo el desarrollador decide si una feature cierra un ciclo completo. El agente nunca asume un bump de major sin consultar.
+Only the developer decides if a feature closes a full cycle. The agent never assumes a major bump without consulting.
 
-### Versión actual
+### Current version
 
 ```
-0.1.0 — documentación inicial (ARCHITECTURE.md, CONTEXT.md, CONTRIBUTING.md)
+0.1.0 — initial documentation (ARCHITECTURE.md, CONTEXT.md, CONTRIBUTING.md)
 ```
 
 ---
 
-## Convención de commits
+## Commit convention
 
 ```
-feat:   nueva funcionalidad o unidad completada
-fix:    corrección de bug dentro de una unidad en curso
-spike:  resultado de un spike de infraestructura
-chore:  actualización de CONTEXT.md, ARCHITECTURE.md, task files
-test:   agregado o corrección de tests sin cambio de lógica
+feat:      new functionality or completed unit
+fix:       bug fix within an in-progress unit
+spike:     result of an infrastructure spike
+chore:     update of CONTEXT.md, ARCHITECTURE.md, task files
+test:      addition or fix of tests without logic changes
+refactor:  code restructuring without behavior change
+ux:        user experience, look & feel, or view changes
+perf:      performance improvement
 ```
 
-Ejemplos correctos:
-- `feat: implementar JsonConnection con CRUD básico`
-- `fix: corregir normalización de columnas prefijadas en applyWhere`
-- `test: cubrir operadores de where en WhereOperatorsTest`
+Correct examples:
+- `feat: implement JsonConnection with basic CRUD`
+- `fix: fix prefixed column normalization in applyWhere`
+- `test: cover where operators in WhereOperatorsTest`
 - `chore: update CONTEXT.md post feature-01`
 
-Ejemplos incorrectos:
+Incorrect examples:
 - `cambios varios`
 - `WIP`
 - `Fix bug`
 
-Mensajes y descripciones de commit siempre en español.
+Commit messages and descriptions always in English, imperative mood, concise.
 
 ---
 
-## Archivos que siempre van al agente
+## Files always given to the agent
 
-En cada sesión nueva el agente recibe exactamente estos tres archivos y nada más:
+In every new session the agent receives exactly these three files and nothing more:
 
 ```
-ARCHITECTURE.md          — siempre, sin excepción
-CONTEXT.md               — siempre, sin excepción
-tasks/unidad-en-curso.md — solo el de la unidad activa
+ARCHITECTURE.md          — always, no exception
+CONTEXT.md               — always, no exception
+tasks/current-unit.md    — only the active unit's task file
 ```
 
-Nunca se le pasan task files de unidades futuras ni de unidades cerradas.
+Task files from future or closed units are never given to the agent.
 
 ---
 
-## Archivos de tasks
+## Task files
 
-Viven en `tasks/`. Se archivan en `tasks/done/` cuando la unidad está cerrada. No se modifican retroactivamente.
+They live in `tasks/`. They are archived in `tasks/done/` when the unit is closed. They are never retroactively modified.
 
-### Convención de nomenclatura
+### Naming convention
 
-Formato: `[tipo]-[número]-[nombre].md`
+Format: `[type]-[number]-[name].md`
 
-| Tipo | Prefijo | Ejemplo |
-|------|---------|---------|
+| Type | Prefix | Example |
+|------|--------|---------|
 | Feature | `feature` | `feature-01-core-driver.md` |
 | Spike | `spike` | `spike-01-json-driver.md` |
 | Fix | `fix` | `fix-01-where-null.md` |
 | Refactor | `refactor` | `refactor-01-storage-interface.md` |
 
-Reglas:
-- El número siempre tiene dos dígitos (01, 02, ..., 15, etc.)
-- El nombre describe brevemente la unidad en kebab-case
-- El agente numera automáticamente según el último archivo del mismo tipo en `tasks/done/`
+Rules:
+- The number always has two digits (01, 02, ..., 15, etc.)
+- The name briefly describes the unit in kebab-case
+- The agent auto-numbers based on the last file of the same type in `tasks/done/`
 
 ---
 
-## Regla de los 3 intentos
+## 3-attempt rule
 
-Si el agente no logra resolver un problema después de 3 prompts concretos, se detiene. El desarrollador interviene manualmente en esa parte puntual, estabiliza, y el agente retoma para lo que sigue. Los bugs persistentes casi siempre son un problema de diseño, no de código.
+If the agent fails to solve a problem after 3 concrete prompts, it stops. The developer manually intervenes in that specific part, stabilizes, and the agent resumes with what follows. Persistent bugs are almost always a design problem, not a code problem.

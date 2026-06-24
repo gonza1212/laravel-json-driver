@@ -1,32 +1,32 @@
 # laravel-json-driver
 
 ![CI](https://github.com/gonza1212/laravel-json-driver/actions/workflows/ci.yml/badge.svg)
-[![Último Release](https://img.shields.io/github/v/release/gonza1212/laravel-json-driver?color=32a852&logo=laravel)](https://github.com/gonza1212/laravel-json-driver/releases)
+[![Latest Release](https://img.shields.io/github/v/release/gonza1212/laravel-json-driver?color=32a852&logo=laravel)](https://github.com/gonza1212/laravel-json-driver/releases)
 
-Driver de base de datos JSON para Laravel 13+. Persistencia local sin base de datos externa.
-Ideal para desarrollo rÃ¡pido, prototipado y tests donde no quieras configurar MySQL, PostgreSQL ni SQLite.
+JSON database driver for Laravel 13+. Local persistence without an external database.
+Ideal for rapid development, prototyping, and tests where you don't want to configure MySQL, PostgreSQL, or SQLite.
 
-## Requisitos
+## Requirements
 
 - PHP 8.3+
 - Laravel 13+
 
-## Instalacion
+## Installation
 
 ```bash
 composer require gonza1212/laravel-json-driver --dev
 ```
 
-## Configuracion
+## Configuration
 
-En tu `.env`:
+In your `.env`:
 
 ```env
 DB_CONNECTION=json
 DB_DATABASE=storage/app/json-db
 ```
 
-Agrega la entrada de conexion en `config/database.php`:
+Add the connection entry in `config/database.php`:
 
 ```php
 'connections' => [
@@ -39,13 +39,13 @@ Agrega la entrada de conexion en `config/database.php`:
 ],
 ```
 
-El driver se registra via auto-discovery. No requiere cambios en `config/app.php`.
+The driver registers via auto-discovery. No changes to `config/app.php` required.
 
-## Uso
+## Usage
 
-### Migraciones
+### Migrations
 
-Las migraciones funcionan exactamente igual que con cualquier base de datos SQL:
+Migrations work exactly the same as with any SQL database:
 
 ```php
 Schema::create('notas', function (Blueprint $table) {
@@ -70,11 +70,11 @@ $nota->update(['titulo' => 'editado']);
 $nota->delete();
 ```
 
-### Operadores de where soportados
+### Supported where operators
 
 `=`, `!=`, `<>`, `<`, `>`, `<=`, `>=`, `in`, `not in`, `is null`, `is not null`, `between`, `not between`, `like`, `whereDate`, `whereYear`, `whereMonth`
 
-### Orden, limite y offset
+### Order, limit, and offset
 
 ```php
 $posts = Post::where('activo', true)
@@ -84,7 +84,7 @@ $posts = Post::where('activo', true)
     ->get();
 ```
 
-### Factories y seeders
+### Factories and seeders
 
 ```php
 Post::factory()->count(10)->create();
@@ -94,9 +94,9 @@ Post::factory()->count(10)->create();
 php artisan db:seed
 ```
 
-### Relaciones Eloquent
+### Eloquent relationships
 
-Las relaciones nativas funcionan out-of-the-box, sin trait ni clase base custom:
+Native relationships work out-of-the-box, without a trait or custom base class:
 
 ```php
 class Autor extends Model { /* ... */ use HasFactory; public function libros(): HasMany { return $this->hasMany(Libro::class); } }
@@ -113,14 +113,14 @@ Autor::with('libros')->get();
 // whereHas / has / withCount
 Autor::whereHas('libros', fn($q) => $q->where('titulo', 'like', 'F%'))->get();
 Autor::has('libros')->get();
-Autor::withCount('libros')->get();  // agrega columna libros_count
+Autor::withCount('libros')->get();  // adds libros_count column
 
 // withPivot
 $libro->generos()->attach($genero->id, ['orden' => 1, 'fecha_agregado' => now()]);
 $libro->generos()->wherePivot('orden', 1)->first();  // $genero->pivot->orden === 1
 ```
 
-Las migraciones declaran FKs con la sintaxis estándar de Laravel, y el driver las respeta al eliminar:
+Migrations declare FKs with standard Laravel syntax, and the driver respects them on delete:
 
 ```php
 Schema::create('libros', function (Blueprint $table) {
@@ -134,16 +134,16 @@ Schema::create('genero_libro', function (Blueprint $table) {
 });
 ```
 
-- `restrictOnDelete()` (default) → `RuntimeException` si intentas borrar un padre con hijos
-- `cascadeOnDelete()` → borra las filas relacionadas recursivamente antes de borrar el padre
+- `restrictOnDelete()` (default) → `RuntimeException` if you try to delete a parent with children
+- `cascadeOnDelete()` → recursively deletes related rows before deleting the parent
 
-## Limitaciones
+## Limitations
 
-- Sin joins ni subqueries arbitrarios. Las relaciones Eloquent y los patrones `whereHas`/`has`/`withCount` se resuelven internamente como lookups secuenciales
-- Sin transacciones
-- Sin soporte de concurrencia (escrituras secuenciales)
-- No apto para entornos de produccion
-- Laravel 13+ exclusivo
+- No arbitrary joins or subqueries. Eloquent relationships and `whereHas`/`has`/`withCount` patterns are resolved internally as sequential lookups
+- No transactions
+- No concurrency support (sequential writes)
+- Not suitable for production environments
+- Laravel 13+ exclusive
 
 ## Testing
 
@@ -151,16 +151,16 @@ Schema::create('genero_libro', function (Blueprint $table) {
 composer test
 ```
 
-## Analisis estatico
+## Static analysis
 
 ```bash
 composer analyse
 ```
 
-## Contribuir
+## Contributing
 
-Ver [CONTRIBUTING.md](CONTRIBUTING.md) para el flujo de trabajo completo.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 
-## Licencia
+## License
 
 MIT
