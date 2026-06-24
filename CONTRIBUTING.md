@@ -231,8 +231,15 @@ Only the developer decides if a feature closes a full cycle. The agent never ass
 ### Current version
 
 ```
-0.1.0 — initial documentation (ARCHITECTURE.md, CONTEXT.md, CONTRIBUTING.md)
+0.2.0 — first public release: Eloquent relationships, whereHas/has/withCount, referential integrity
 ```
+
+### Internal vs public versioning
+
+The task-file numeration (feature-01 through feature-05) is an internal tracking mechanism
+and does not match the public version. Public version `0.2.0` bundles all internal features
+(01–05) because features 01–04 were foundational infrastructure with no user-facing value.
+Only feature-05 (Eloquent relationships) constitutes the deliverable functionality.
 
 ---
 
