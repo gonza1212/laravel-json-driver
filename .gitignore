@@ -12,3 +12,5 @@ ARCHITECTURE.md
 CONTEXT.md
 AGENTS.md
 tasks/
+# opencode — do not commit agent config
+.ignore
