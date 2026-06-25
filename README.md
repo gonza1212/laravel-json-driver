@@ -25,20 +25,7 @@ DB_CONNECTION=json
 DB_DATABASE=storage/app/json-db
 ```
 
-Add the connection entry in `config/database.php`:
-
-```php
-'connections' => [
-    'json' => [
-        'driver'   => 'json',
-        'database' => env('DB_DATABASE', storage_path('app/json-db')),
-        'prefix'   => '',
-    ],
-    // ...
-],
-```
-
-The driver registers via auto-discovery. No changes to `config/app.php` required.
+The driver registers via auto-discovery. No changes to `config/app.php` or `config/database.php` required.
 
 ## Usage
 
