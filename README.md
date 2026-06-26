@@ -2,6 +2,7 @@
 
 ![CI](https://github.com/gonza1212/laravel-json-driver/actions/workflows/ci.yml/badge.svg)
 [![Latest Release](https://img.shields.io/github/v/release/gonza1212/laravel-json-driver?color=32a852&logo=laravel)](https://github.com/gonza1212/laravel-json-driver/releases)
+![NativePHP v3](https://img.shields.io/badge/NativePHP-v3%20compatible-brightgreen)
 
 JSON database driver for Laravel 13+. Local persistence without an external database — ideal for rapid development, prototyping, testing, and offline mobile apps where you want zero database setup.
 
@@ -116,6 +117,39 @@ Schema::create('genre_book', function (Blueprint $table) {
 
 - `restrictOnDelete()` (default) → throws `RuntimeException` if you try to delete a parent with related rows
 - `cascadeOnDelete()` → deletes related rows before deleting the parent
+
+## NativePHP Compatibility
+
+`laravel-json-driver` is compatible with [NativePHP for Mobile v3](https://nativephp.com). No driver changes are required.
+
+| Concern | Status | Notes |
+|---|---|---|
+| `storage_path()` persistence | ✅ Verified | iOS: redirected via `LARAVEL_STORAGE_PATH` to `Application Support/storage/` (sandbox, persistent). Android: redirected via `LARAVEL_STORAGE_PATH` to `app_storage/persisted_data/storage/` (internal app storage, persistent). |
+| PHP extensions (json, pcre, date) | ✅ Verified | Android runtime (PHP 8.4.5) bundles `json` (`--enable-json`), PCRE (bundled PCRE2, `HAVE_BUNDLED_PCRE 1`), and `date` (built-in). iOS uses the same bundled PHP runtime. |
+| `require-dev` excluded from production build | ✅ Verified | iOS build runs `composer install --no-dev` when the `--release` flag is passed. Android build runs `composer install --no-dev --no-interaction` by default. |
+
+### Installation note
+
+Since the package is installed with `--dev`, it is automatically excluded from production
+builds when NativePHP runs `composer install --no-dev` during the bundle step. No additional
+configuration is needed.
+
+> Verified against NativePHP mobile [`v3.3.6`](https://github.com/nativephp/mobile-air/releases/tag/3.3.6)
+> — 2026-06-26.
+
+<details>
+<summary>References in the <code>nativephp/mobile-air</code> repository</summary>
+
+- `src/Commands/BuildIosAppCommand.php:98-112` — iOS `composer install --no-dev` on release build
+- `src/Traits/PreparesBuild.php:200-256` — Android `composer install --no-dev` on bundle prepare
+- `resources/xcode/NativePHP/NativePHPApp.swift:391,405` — iOS `LARAVEL_STORAGE_PATH` setup
+- `resources/xcode/NativePHP/Bridge/PersistentPHPRuntime.swift:63,67` — iOS persistent runtime storage path
+- `resources/androidstudio/app/src/main/java/com/nativephp/mobile/bridge/LaravelEnvironment.kt:799` — Android `LARAVEL_STORAGE_PATH` env var injection
+- `resources/androidstudio/app/src/main/cpp/include/php/main/build-defs.h:17` — Android PHP 8.4.5 configure flags (`--enable-json`, etc.)
+- `resources/androidstudio/app/src/main/cpp/include/php/main/php_version.h` — `PHP_VERSION "8.4.5"`
+- `composer.json:26-27` — `mobile-air` declares `ext-dom` and `ext-simplexml` as runtime requirements, confirming those extensions are bundled in the iOS runtime
+
+</details>
 
 ## Switching to a real database
 
